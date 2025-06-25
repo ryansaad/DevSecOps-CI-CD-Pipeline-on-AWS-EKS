@@ -23,9 +23,9 @@ pipeline {
                 sh 'mvn compile'
             }
         }
-        stage('Test') {
+        stage('Tests') {
             steps {
-                sh 'mvn test -DskipTests=true'
+                sh 'mvn test'
             }
         }
         
@@ -38,23 +38,18 @@ pipeline {
 
         stage("Trivy FS Scan"){
             steps{
-                sh "trivy fs --formattable -o fs-report.html ."
+                sh "trivy fs --format table -o fs-report.html ."
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withSOnarQubeEnv('sonar'){
-                    sh " $SCANNER_HOME/bin/sonarscanner -Dsonar.projectName=Multitier -Dsonar.projectKey=Multitier -Dsonar.java.binaries=target"
+                withSonarQubeEnv('sonar'){
+                    sh " $SCANNER_HOME/bin/sonarscanner -Dsonar.projectName=bankapp -Dsonar.projectKey=bankapp -Dsonar.java.binaries=target"
                 }
             }
         }
 
-        stage("Build"){
-            steps{
-                sh "mvn package -DskipTests=true"
-            }
-        }
 
         stage("Publish To Nexus"){
             steps{
@@ -75,7 +70,7 @@ pipeline {
 
         stage("Trivy Image Scan"){
             steps{
-                sh "trivy image --formattable -o fs-report.html username/bankapp:latest"
+                sh "trivy image --format table -o image.html username/bankapp:latest"
             }
         }
 
